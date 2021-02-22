@@ -1,0 +1,64 @@
+service:
+  name: nuxt-lambda-sample-mochizuki
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: ${opt:stage}
+  region: ap-northeast-1
+
+functions:
+  nuxt:
+    warmup: true
+    handler: server/index.handler
+    timeout: 30
+    memorySize: 2048
+    events:
+      - http:
+          path: '/'
+          method: get
+      - http:
+          path: '{proxy+}'
+          method: get
+
+plugins:
+  - serverless-apigw-binary
+  - serverless-plugin-warmup
+
+custom:
+  apigwBinary:
+    types:
+      - '*/*'
+  warmup:
+    default: production
+    prewarm: true
+
+# 少しでもデプロイのパッケージファイルを少なくする
+package:
+  excludeDevDependencies: true
+  exclude:
+    - .**
+    - .**/*
+    - app/**
+    - LICENSE
+    - README.md
+    - package.json
+    - yarn.lock
+    # Node.js 上で使われないモジュール
+    # 重いものを優先的に除外
+    - node_modules/babel**/**
+    - node_modules/caniuse-db/**
+    - node_modules/prettier/**
+    - node_modules/yargs/**
+    - node_modules/xxhashjs/**
+    - node_modules/jschardet/**
+    - node_modules/**/*.md
+    - node_modules/**/bin/**
+  include:
+    - server/**
+    - configs/**
+    - nuxt.config.js
+    - .nuxt/**
+    - node_modules/autoprefixer/**
+    - node_modules/babel-runtime/**
+    - node_modules/babel-extract-comments/**
